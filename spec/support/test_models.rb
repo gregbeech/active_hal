@@ -1,13 +1,13 @@
 class Address
   include ActiveHal::Model
 
-  hal_attr :line1
+  hal_attr :id, :line1
 end
 
 class Customer
   include ActiveHal::Model
 
-  hal_attr :first_name
+  hal_attr :id, :first_name
 end
 
 class Order
@@ -24,11 +24,11 @@ end
 class OrderItem
   include ActiveHal::Model
 
-  hal_attr :name
+  hal_attr :id, :name
 end
 
 class Restaurant
   include ActiveHal::Model
 
-  hal_attr :name
+  hal_attr :id, :name
 end

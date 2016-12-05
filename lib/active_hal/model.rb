@@ -7,12 +7,14 @@ require 'faraday'
 require 'faraday_middleware'
 require 'typhoeus/adapters/faraday'
 require 'active_hal/curies'
+require 'active_hal/errors'
 require 'active_hal/link'
 
 module ActiveHal
   module Model
     extend ActiveSupport::Concern
     include ActiveModel::Model
+    include ActiveModel::Dirty
 
     class_methods do
       def hal_attr_reader(*names)
@@ -28,6 +30,7 @@ module ActiveHal
           define_method :"#{name}=" do |value|
             write_attribute(name, value)
           end
+          define_attribute_methods name
         end
       end
 
@@ -49,12 +52,18 @@ module ActiveHal
       end
     end
 
+    def initialize(attributes)
+      super(attributes)
+      changes_applied
+    end
+
     def read_attribute(name)
       attributes[name.to_sym]
     end
 
     def write_attribute(name, value)
       raise 'Cannot assign reserved attributes' if name.to_s.start_with?('_')
+      public_send(:"#{name}_will_change!") if respond_to?(:"#{name}_will_change!")
       attributes[name.to_sym] = value
     end
 
@@ -66,6 +75,10 @@ module ActiveHal
         else write_attribute(name, value)
         end
       end
+    end
+
+    def persisted?
+      links[:self].present?
     end
 
     def loaded?
@@ -92,6 +105,23 @@ module ActiveHal
       json[:_embedded] = embedded.to_hash(symbolize_keys: true) if embedded.any?
       json.merge!(attributes)
       json
+    end
+
+    def save
+      return false unless valid?
+      return true unless changed?
+
+      response = connection.patch(links[:self].href, to_json)
+      unless response.success?
+        raise ModelNotSaved.new("Model not saved; status #{response.status}", self)
+      end
+
+      changes_applied
+      true
+    end
+
+    def save!
+      raise ModelInvalid.new(self) unless save
     end
 
     private

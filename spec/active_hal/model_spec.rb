@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'support/test_models'
 
-describe ActiveHal do
+describe ActiveHal::Model do
   describe '::belongs_to' do
     subject { Order.new(hal) }
 
@@ -114,6 +114,7 @@ describe ActiveHal do
       end
     end
   end
+
   describe '::has_many' do
     subject { Order.new(hal) }
 
@@ -161,11 +162,11 @@ describe ActiveHal do
 
   describe '::new' do
     context 'when regular attributes are provided' do
-      subject { Order.new(id: 123, total_price: 1599) }
+      subject { Order.new(id: 123, total_price: 15.97) }
 
       it 'should set the attributes' do
         expect(subject.id).to eq 123
-        expect(subject.total_price).to eq 1599
+        expect(subject.total_price).to eq 15.97
       end
     end
 
@@ -185,13 +186,77 @@ describe ActiveHal do
       stub_request(:get, 'https://example.org/orders/123').to_return(
         status: 200,
         headers: { 'Content-Type' => 'application/json' },
-        body: { _links: { self: { href: 'https://example.org/orders/123' } }, id: 123, total_price: 1599 }.to_json)
+        body: { _links: { self: { href: 'https://example.org/orders/123' } }, id: 123, total_price: 15.97 }.to_json)
     end
 
     it 'should load from the URL' do
         expect(subject.id).to eq 123
-        expect(subject.total_price).to eq 1599
+        expect(subject.total_price).to eq 15.97
     end
+  end
+
+  describe '#save' do
+    let(:hal) {
+      {
+        _links: {
+          self: {
+            href: 'https://example.org/orders/123'
+          }
+        },
+        id: 123,
+        total_price: 15.97
+      }
+    }
+
+    subject { Order.new(hal) }
+
+    context 'when the order has not changed' do
+      it 'should return true without patching the resource' do
+        expect(subject.save).to eq true
+      end
+    end
+
+    context 'when the order has changed' do
+      before do
+        subject.total_price = 19.23
+      end
+
+      context 'when the request succeeds' do
+        before do
+          stub_request(:patch, 'https://example.org/orders/123').to_return(
+            status: 200,
+            headers: { 'Content-Type' => 'application/json' },
+            body: {
+              _links: {
+                self: {
+                  href: 'https://example.org/orders/123'
+                }
+              },
+              id: 123,
+              total_price: 19.23
+            }.to_json
+          )
+        end
+
+        it 'should patch the resource and return true' do
+          expect(subject.save).to eq true
+        end
+      end
+
+      context 'when the request fails' do
+        before do
+          stub_request(:patch, 'https://example.org/orders/123').to_return(
+            status: 400,
+            headers: { 'Content-Type' => 'application/json' },
+            body: {}.to_json)
+        end
+
+        it 'should patch the resource and return true' do
+          expect{ subject.save }.to raise_error ActiveHal::ModelNotSaved
+        end
+      end
+    end
+
   end
 
 end
