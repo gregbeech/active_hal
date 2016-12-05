@@ -1,39 +1,57 @@
 # ActiveHal
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/active_hal`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
-## Installation
-
-Add this line to your application's Gemfile:
+This library lets you write [ActiveModel](http://guides.rubyonrails.org/active_model_basics.html) classes for [JSON-HAL](https://tools.ietf.org/html/draft-kelly-json-hal-08), e.g. the following model...
 
 ```ruby
-gem 'active_hal'
+class Order
+  include ActiveHal::Model
+
+  hal_attr :id, :total_price
+
+  belongs_to :restaurant
+  belongs_to :user, class_name: 'Customer'
+  belongs_to :address, rel: 'https://example.org/rels/address'
+  has_many :items, class_name: 'OrderItem', rel: 'https://example.org/rels/order-items'
+end
 ```
 
-And then execute:
+...could be used to represent the following JSON-HAL.
 
-    $ bundle
+```json
+{
+  "_links": {
+    "curies": [{
+      "name": "eg",
+      "href": "https://example.org/rels/{rel}",
+      "templated": true
+    }],
+    "self": {
+      "href": "https://example.org/orders/108"
+    },
+    "restaurant": {
+      "href": "https://example.org/restaurants/72"
+    },
+    "user": {
+      "href": "https://example.org/users/38"
+    },
+    "eg:address": {
+      "href": "https://example.org/addresses/82"
+    },
+    "eg:order-item": [{
+      "href": "https://example.org/order-items/382"
+    }, {
+      "href": "https://example.org/order-items/383"
+    }]
+  },
+  "total_price": 12.99
+}
+```
 
-Or install it yourself as:
-
-    $ gem install active_hal
-
-## Usage
-
-TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+You can then just use them like normal objects, and any attributes and relations will be loaded automatically.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/active_hal. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
+Bug reports and pull requests are welcome on GitHub at https://github.com/gregbeech/active_hal. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 

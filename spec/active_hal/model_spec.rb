@@ -3,14 +3,33 @@ require 'support/test_models'
 
 describe ActiveHal do
   describe '::belongs_to' do
+    subject { Order.new(hal) }
+
     context 'when just a name is specified' do
-      subject { Order.new(_links: { restaurant: { href: 'https://example.org/restaurants/72' } }) }
+      let(:hal) {
+        {
+          _links: {
+            restaurant: {
+              href: 'https://example.org/restaurants/72'
+            }
+          }
+        }
+      }
+
 
       before do
         stub_request(:get, 'https://example.org/restaurants/72').to_return(
           status: 200,
           headers: { 'Content-Type' => 'application/json' },
-          body: { _links: { self: { href: 'https://example.org/restaurants/72' } }, id: 72, name: 'Curry in a Hurry' }.to_json)
+          body: {
+            _links: {
+              self: {
+                href: 'https://example.org/restaurants/72'
+              }
+            },
+            id: 72,
+            name: 'Curry in a Hurry' }.to_json
+        )
       end
 
       it 'should return a model whose class is derived from the name' do
@@ -22,13 +41,30 @@ describe ActiveHal do
     end
 
     context 'when a class_name is specified' do
-      subject { Order.new(_links: { user: { href: 'https://example.org/users/38' } }) }
+      let(:hal) {
+        {
+          _links: {
+            user: {
+              href: 'https://example.org/users/38'
+            }
+          }
+        }
+      }
 
       before do
         stub_request(:get, 'https://example.org/users/38').to_return(
           status: 200,
           headers: { 'Content-Type' => 'application/json' },
-          body: { _links: { self: { href: 'https://example.org/users/38' } }, id: 38, first_name: 'John' }.to_json)
+          body: {
+            _links: {
+              self: {
+                href: 'https://example.org/users/38'
+              }
+            },
+            id: 38,
+            first_name: 'John'
+          }.to_json
+        )
       end
 
       it 'should return a model of the specified class' do
@@ -40,13 +76,34 @@ describe ActiveHal do
     end
 
     context 'when a curie relation is specified' do
-      subject { Order.new(_links: { 'curies' => [{ name: 'foo', href: 'https://example.org/rels/{rel}', templated: true }], 'foo:address' => { href: 'https://example.org/addresses/82' } }) }
+      let(:hal) {
+        {
+          _links: {
+            'curies' => [{
+              name: 'eg',
+              href: 'https://example.org/rels/{rel}',
+              templated: true
+            }],
+            'eg:address' => {
+              href: 'https://example.org/addresses/82'
+            }
+          }
+        }
+      }
 
       before do
         stub_request(:get, 'https://example.org/addresses/82').to_return(
           status: 200,
           headers: { 'Content-Type' => 'application/json' },
-          body: { _links: { self: { href: 'https://example.org/addresses/82' } }, id: 82, line1: '23 Acacia Avenue' }.to_json)
+          body: {
+            _links: {
+              self: {
+                href: 'https://example.org/addresses/82'
+              }
+            },
+            id: 82,
+            line1: '23 Acacia Avenue' }.to_json
+        )
       end
 
       it 'should decode the curie and return the right model' do
@@ -54,6 +111,50 @@ describe ActiveHal do
       end
       it 'should ensure the model is loaded' do
         expect(subject.address).to be_loaded
+      end
+    end
+  end
+  describe '::has_many' do
+    subject { Order.new(hal) }
+
+    context 'when a class name and curie relation are specified' do
+      let(:hal) {
+        {
+          _links: {
+            'curies' => [{
+              name: 'eg',
+              href: 'https://example.org/rels/{rel}',
+              templated: true
+            }],
+            'eg:order-item' => [{
+              href: 'https://example.org/order-items/82'
+            }]
+          }
+        }
+      }
+
+      before do
+        stub_request(:get, 'https://example.org/order-items/82').to_return(
+          status: 200,
+          headers: { 'Content-Type' => 'application/json' },
+          body: {
+            _links: {
+              self: {
+                href: 'https://example.org/order-items/82'
+              }
+            },
+            id: 82,
+            name: 'Beans on Toast'
+          }.to_json
+        )
+      end
+
+      it 'should decode the curie and return the right model' do
+        expect(subject.items).to be_a Array
+        expect(subject.items).to all(be_a OrderItem)
+      end
+      it 'should ensure the model is loaded' do
+        expect(subject.items).to all(be_loaded)
       end
     end
   end

@@ -44,7 +44,7 @@ module ActiveHal
 
       def has_many(name, **options)
         define_method name do
-          raise NotImplementedError
+          multi_relation(name, options).map(&:load)
         end
       end
     end
@@ -123,11 +123,24 @@ module ActiveHal
       class_name = options.fetch(:class_name, name.to_s.classify).constantize
 
       if links.key?(rel)
-        class_name.new(_links: { self: { href: links[rel].href } })
+        class_name.new(_links: { self: links[rel].as_json })
       elsif embedded.key?(rel)
         class_name.new(embedded[rel])
       elsif !options.fetch(:optional, false)
-        raise "#{name} not found"
+        raise "#{rel} not found"
+      end
+    end
+
+    def multi_relation(name, options)
+      rel = options.fetch(:rel, name)
+      class_name = options.fetch(:class_name, name.to_s.classify).constantize
+
+      if links.key?(rel)
+        links[rel].map { |link| class_name.new(_links: { self: link.as_json }) }
+      elsif embedded.key?(rel)
+        embedded[rel].map { |data| class_name.new(data) }
+      else
+        []
       end
     end
 

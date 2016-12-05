@@ -23,6 +23,8 @@ end
 
 class OrderItem
   include ActiveHal::Model
+
+  hal_attr :name
 end
 
 class Restaurant
