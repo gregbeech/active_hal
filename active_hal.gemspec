@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'active_hal/version'
@@ -8,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Greg Beech']
   spec.email         = ['greg@gregbeech.com']
 
-  spec.summary       = %q{An ActiveModel-like client for HAL APIs}
-  spec.description   = %q{An ActiveModel-like client for HAL APIs}
+  spec.summary       = 'An ActiveModel-like client for HAL APIs'
+  spec.description   = 'An ActiveModel-like client for HAL APIs'
   spec.homepage      = 'https://github.org/gregbeech/active_hal'
   spec.license       = 'MIT'
 

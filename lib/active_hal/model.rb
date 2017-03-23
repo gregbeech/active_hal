@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_model'
 require 'active_model'
 require 'active_support'
@@ -121,7 +122,7 @@ module ActiveHal
     end
 
     def save!
-      raise ModelInvalid.new(self) unless save
+      raise ModelInvalid, self unless save
     end
 
     private

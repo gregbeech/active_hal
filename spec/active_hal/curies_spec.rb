@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'active_hal/curies'
 
 RSpec.describe ActiveHal::Curies do
@@ -19,7 +20,7 @@ RSpec.describe ActiveHal::Curies do
       expect(subject.expand('acme:widgets')).to eq 'http://docs.acme.com/relations/widgets'
     end
     it 'should raise a KeyError if the prefix is not defined' do
-      expect{ subject.expand('foo:widgets') }.to raise_error KeyError
+      expect { subject.expand('foo:widgets') }.to raise_error KeyError
     end
   end
 end

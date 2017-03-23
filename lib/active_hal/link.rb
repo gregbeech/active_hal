@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module ActiveHal
   class Link
     attr_reader :rel

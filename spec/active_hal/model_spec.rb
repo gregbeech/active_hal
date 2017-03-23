@@ -1,4 +1,4 @@
-require 'spec_helper'
+# frozen_string_literal: true
 require 'support/test_models'
 
 describe ActiveHal::Model do
@@ -6,7 +6,7 @@ describe ActiveHal::Model do
     subject { Order.new(hal) }
 
     context 'when just a name is specified' do
-      let(:hal) {
+      let(:hal) do
         {
           _links: {
             restaurant: {
@@ -14,8 +14,7 @@ describe ActiveHal::Model do
             }
           }
         }
-      }
-
+      end
 
       before do
         stub_request(:get, 'https://example.org/restaurants/72').to_return(
@@ -28,7 +27,8 @@ describe ActiveHal::Model do
               }
             },
             id: 72,
-            name: 'Curry in a Hurry' }.to_json
+            name: 'Curry in a Hurry'
+          }.to_json
         )
       end
 
@@ -41,7 +41,7 @@ describe ActiveHal::Model do
     end
 
     context 'when a class_name is specified' do
-      let(:hal) {
+      let(:hal) do
         {
           _links: {
             user: {
@@ -49,7 +49,7 @@ describe ActiveHal::Model do
             }
           }
         }
-      }
+      end
 
       before do
         stub_request(:get, 'https://example.org/users/38').to_return(
@@ -76,7 +76,7 @@ describe ActiveHal::Model do
     end
 
     context 'when a curie relation is specified' do
-      let(:hal) {
+      let(:hal) do
         {
           _links: {
             'curies' => [{
@@ -89,7 +89,7 @@ describe ActiveHal::Model do
             }
           }
         }
-      }
+      end
 
       before do
         stub_request(:get, 'https://example.org/addresses/82').to_return(
@@ -102,7 +102,8 @@ describe ActiveHal::Model do
               }
             },
             id: 82,
-            line1: '23 Acacia Avenue' }.to_json
+            line1: '23 Acacia Avenue'
+          }.to_json
         )
       end
 
@@ -119,7 +120,7 @@ describe ActiveHal::Model do
     subject { Order.new(hal) }
 
     context 'when a class name and curie relation are specified' do
-      let(:hal) {
+      let(:hal) do
         {
           _links: {
             'curies' => [{
@@ -132,7 +133,7 @@ describe ActiveHal::Model do
             }]
           }
         }
-      }
+      end
 
       before do
         stub_request(:get, 'https://example.org/order-items/82').to_return(
@@ -152,7 +153,7 @@ describe ActiveHal::Model do
 
       it 'should decode the curie and return the right model' do
         expect(subject.items).to be_a Array
-        expect(subject.items).to all(be_a OrderItem)
+        expect(subject.items).to all(be_a(OrderItem))
       end
       it 'should ensure the model is loaded' do
         expect(subject.items).to all(be_loaded)
@@ -186,17 +187,18 @@ describe ActiveHal::Model do
       stub_request(:get, 'https://example.org/orders/123').to_return(
         status: 200,
         headers: { 'Content-Type' => 'application/json' },
-        body: { _links: { self: { href: 'https://example.org/orders/123' } }, id: 123, total_price: 15.97 }.to_json)
+        body: { _links: { self: { href: 'https://example.org/orders/123' } }, id: 123, total_price: 15.97 }.to_json
+      )
     end
 
     it 'should load from the URL' do
-        expect(subject.id).to eq 123
-        expect(subject.total_price).to eq 15.97
+      expect(subject.id).to eq 123
+      expect(subject.total_price).to eq 15.97
     end
   end
 
   describe '#save' do
-    let(:hal) {
+    let(:hal) do
       {
         _links: {
           self: {
@@ -206,7 +208,7 @@ describe ActiveHal::Model do
         id: 123,
         total_price: 15.97
       }
-    }
+    end
 
     subject { Order.new(hal) }
 
@@ -248,15 +250,14 @@ describe ActiveHal::Model do
           stub_request(:patch, 'https://example.org/orders/123').to_return(
             status: 400,
             headers: { 'Content-Type' => 'application/json' },
-            body: {}.to_json)
+            body: {}.to_json
+          )
         end
 
         it 'should patch the resource and return true' do
-          expect{ subject.save }.to raise_error ActiveHal::ModelNotSaved
+          expect { subject.save }.to raise_error ActiveHal::ModelNotSaved
         end
       end
     end
-
   end
-
 end
